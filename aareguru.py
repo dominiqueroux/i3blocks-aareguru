@@ -11,6 +11,10 @@ default_threshold = 18.0
 aare_city = os.environ.get('aare_city')
 aare_threshold = os.environ.get('aare_threshold')
 
+# Check if a mouse button was pressed
+block_button = os.environ['BLOCK_BUTTON'] if 'BLOCK_BUTTON' in os.environ else None
+block_button = int(block_button) if block_button else None
+
 # Ensure a city is set (otherwise pyare will crash)
 if aare_city is None:
     aare_city = default_city
@@ -18,21 +22,37 @@ if aare_city is None:
 if aare_threshold is None:
     aare_threshold = default_threshold
 
-
-# Get the Aare temperature
 aare = PyAare(city = aare_city)
-temp = aare.tempC
+if block_button == 3:
+    # Get forecast temperature
+    temp = aare.tempC2h
+else:
+    # Get the Aare temperature
+    temp = aare.tempC
+
+if block_button == 2:
+    # Get the flow and the corresponding text
+    flow = aare.flow
+    flow_text = aare.flowText
 
 # Decide if a jump into the Aare is encouraged or not
 if temp < float(aare_threshold):
     color = '#FFFFFF'
-    fulltext = "<span font='FontAwesome'>\uf773</span>" + " "
+    fulltext = "<span font='FontAwesome'>\uf773</span> "
 else:
     color = '#64C8FA'
-    fulltext = "<span font='FontAwesome'>\uf5c4</span>" + " "
+    fulltext = "<span font='FontAwesome'>\uf5c4</span> "
 
-form =  '<span color="{}">{}°</span>'
-fulltext += form.format(color,temp)
+if block_button == 3:
+    fulltext += "<span>2h:</span> "
+
+if block_button == 2:
+    form =  '<span>{} m³/s: {}</span>'
+    fulltext += form.format(flow,flow_text)
+else:
+    form =  '<span color="{}">{}°</span>'
+    fulltext += form.format(color,temp)
+
 
 print(fulltext)
 print(fulltext)
